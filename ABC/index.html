@@ -51,7 +51,33 @@
   </div>
 
 <script>
-// 保持 JS 內容與之前一致，不需修改
+const apiUrl = "https://script.google.com/macros/s/AKfycbz42AHuGl7eIsyye0CjtjXXwjvP9WCzBrk637DC5Xg7F4hBSBZvYbG2xr_Fwf8SZCG1/exec"; // ✅ 請填入你實際部署的 Apps Script URL
+
+window.onload = async () => {
+  try {
+    const res = await fetch(apiUrl + "?action=getQuestionIds");
+    const data = await res.json();
+    const select = document.getElementById("questionSet");
+    data.forEach(id => {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = id;
+      select.appendChild(option);
+    });
+
+    const up = await fetch(apiUrl + "?action=getUnpassedStudents");
+    const list = await up.json();
+    const div = document.getElementById("unpassedList");
+    list.forEach(entry => {
+      const p = document.createElement("p");
+      p.innerHTML = `週次 <strong>${entry.id}</strong> 未通過：${entry.unpassed.join(", ")}`;
+      div.appendChild(p);
+    });
+  } catch (err) {
+    alert("⚠️ 無法連接資料庫，請稍後再試");
+    console.error(err);
+  }
+};
 </script>
 </body>
 </html>
