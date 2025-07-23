@@ -41,6 +41,7 @@
       <label for="questionSet" class="block font-bold mb-1">📚 題庫週次：</label>
       <select id="questionSet" class="w-full border-2 border-pink-300 p-2 rounded-lg mb-4 bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-pink-400"></select>
 
+      <!-- 確保此按鈕沒有 onclick 屬性，只有 id="startButton" -->
       <button id="startButton" class="bg-pink-500 text-white px-6 py-3 rounded-full hover:bg-pink-600 w-full font-bold text-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">🚀 開始挑戰</button>
 
       </div>
@@ -62,7 +63,7 @@
     <div id="summarySection" class="hidden bg-white p-4 rounded-xl shadow mt-6 border-2 border-green-300">
       <h2 class="text-xl font-bold text-green-700 mb-2">🏆 挑戰完成</h2>
       <ul id="summaryList" class="list-disc list-inside mb-4 text-lg text-gray-700"></ul>
-      <button onclick="restart()" class="bg-blue-400 text-white px-6 py-3 rounded-full hover:bg-blue-500 font-bold text-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">🔁 換人挑戰</button>
+      <button onclick="restart()" class="bg-blue-400 text-white px-6 py-3 rounded-full hover:bg-blue-500 font-bold text-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">� 換人挑戰</button>
     </div>
 
     <div id="messageBox" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
@@ -98,126 +99,6 @@ function showMessageBox(message) {
 function hideMessageBox() {
   document.getElementById('messageBox').classList.add('hidden');
 }
-
-// 頁面載入時初始化
-window.onload = async () => {
-  try {
-    // 檢查瀏覽器是否支援 SpeechRecognition
-    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-      showMessageBox("⚠️ 您的瀏覽器不支援語音辨識功能，請使用 Google Chrome 瀏覽器以獲得最佳體驗。");
-      document.getElementById('recordButton').disabled = true; // 禁用錄音按鈕
-    } else {
-      // 初始化 SpeechRecognition
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.continuous = false; // 只獲取單次結果
-      recognition.interimResults = false; // 不顯示中間結果
-      recognition.lang = 'en-US'; // 設定辨識語言為英文
-
-      recognition.onstart = () => {
-        isRecording = true;
-        document.getElementById("status").textContent = "🎙️ 錄音中... 請唸出英文 (5秒)";
-        document.getElementById("recordButton").disabled = true; // 錄音時禁用按鈕
-      };
-
-      recognition.onend = () => {
-        isRecording = false;
-        document.getElementById("recordButton").disabled = false; // 錄音結束後啟用按鈕
-        clearTimeout(recognitionTimeout); // 清除計時器
-        // 如果沒有結果，表示可能沒有聲音或辨識失敗
-        if (document.getElementById("status").textContent.includes("錄音中")) {
-            // 如果狀態仍是錄音中，表示沒有觸發 onresult 或 onerror
-            document.getElementById("status").textContent = "🗣️ 錄音結束，沒有偵測到有效聲音。";
-            // 由於沒有辨識結果，這裡可以設定為錯誤，並自動進入下一題
-            practiceResults.push("❌ 沒有聲音");
-            setTimeout(() => {
-                currentQuestionIndex++;
-                displayQuestion();
-            }, 1500); // 1.5 秒後自動跳轉
-        }
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        const confidence = event.results[0][0].confidence;
-        const expectedEnglish = currentQuestions[currentQuestionIndex].en;
-
-        // 這裡需要實作更精確的發音判斷邏輯
-        // 目前先簡單判斷是否包含關鍵字或模擬正確率
-        let isCorrect = false;
-        if (transcript.toLowerCase().includes(expectedEnglish.toLowerCase())) {
-            isCorrect = true; // 簡單判斷包含關鍵字
-        } else {
-            // 模擬發音判斷，實際應用中需要更複雜的演算法
-            isCorrect = Math.random() > 0.5;
-        }
-        
-        const resultText = isCorrect ? "✅ 正確" : "❌ 錯誤";
-        practiceResults.push(resultText); // 記錄結果
-        document.getElementById("status").textContent = `辨識結果: "${transcript}" (${(confidence * 100).toFixed(2)}%) - ${resultText}`;
-
-        // 自動進入下一題或結束
-        setTimeout(() => {
-          currentQuestionIndex++;
-          displayQuestion();
-        }, 1500); // 1.5 秒後自動跳轉
-      };
-
-      recognition.onerror = (event) => {
-        isRecording = false;
-        document.getElementById("recordButton").disabled = false;
-        clearTimeout(recognitionTimeout);
-
-        let errorMessage = "語音辨識錯誤：";
-        if (event.error === 'no-speech') {
-          errorMessage = "🗣️ 沒有偵測到聲音，請再試一次。";
-          practiceResults.push("❌ 沒有聲音"); // 記錄為沒有聲音
-        } else if (event.error === 'not-allowed') {
-          errorMessage = "🚫 麥克風權限被拒絕，請允許瀏覽器使用麥克風。";
-          practiceResults.push("❌ 權限拒絕");
-        } else {
-          errorMessage += event.error;
-          practiceResults.push("❌ 辨識錯誤");
-        }
-        document.getElementById("status").textContent = errorMessage;
-        showMessageBox(errorMessage); // 顯示錯誤訊息給用戶
-
-        // 錯誤後也自動進入下一題或結束
-        setTimeout(() => {
-            currentQuestionIndex++;
-            displayQuestion();
-        }, 2500); // 2.5 秒後自動跳轉
-      };
-    }
-
-    // 獲取題庫週次列表
-    const res = await fetch(apiUrl + "?action=getQuestionIds");
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
-    const select = document.getElementById("questionSet");
-    select.innerHTML = ''; // 清空現有選項
-    if (data.length === 0) {
-      const option = document.createElement("option");
-      option.value = "";
-      option.textContent = "無可用題庫";
-      select.appendChild(option);
-    } else {
-      data.forEach(id => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = id;
-        select.appendChild(option);
-      });
-    }
-
-    // 將事件監聽器添加到「開始挑戰」按鈕
-    document.getElementById('startButton').addEventListener('click', startPractice);
-
-  } catch (err) {
-    showMessageBox("⚠️ 無法連接資料庫或獲取初始資料，請稍後再試。");
-    console.error("初始化錯誤:", err);
-  }
-};
 
 // 開始挑戰
 async function startPractice() {
@@ -397,6 +278,127 @@ function restart() {
   document.getElementById("startSection").classList.remove("hidden");
   document.getElementById("status").textContent = ""; // 清空狀態
 }
+
+// 頁面載入時初始化
+window.onload = async () => {
+  try {
+    // 檢查瀏覽器是否支援 SpeechRecognition
+    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+      showMessageBox("⚠️ 您的瀏覽器不支援語音辨識功能，請使用 Google Chrome 瀏覽器以獲得最佳體驗。");
+      document.getElementById('recordButton').disabled = true; // 禁用錄音按鈕
+    } else {
+      // 初始化 SpeechRecognition
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false; // 只獲取單次結果
+      recognition.interimResults = false; // 不顯示中間結果
+      recognition.lang = 'en-US'; // 設定辨識語言為英文
+
+      recognition.onstart = () => {
+        isRecording = true;
+        document.getElementById("status").textContent = "🎙️ 錄音中... 請唸出英文 (5秒)";
+        document.getElementById("recordButton").disabled = true; // 錄音時禁用按鈕
+      };
+
+      recognition.onend = () => {
+        isRecording = false;
+        document.getElementById("recordButton").disabled = false; // 錄音結束後啟用按鈕
+        clearTimeout(recognitionTimeout); // 清除計時器
+        // 如果沒有結果，表示可能沒有聲音或辨識失敗
+        if (document.getElementById("status").textContent.includes("錄音中")) {
+            // 如果狀態仍是錄音中，表示沒有觸發 onresult 或 onerror
+            document.getElementById("status").textContent = "🗣️ 錄音結束，沒有偵測到有效聲音。";
+            // 由於沒有辨識結果，這裡可以設定為錯誤，並自動進入下一題
+            practiceResults.push("❌ 沒有聲音");
+            setTimeout(() => {
+                currentQuestionIndex++;
+                displayQuestion();
+            }, 1500); // 1.5 秒後自動跳轉
+        }
+      };
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        const confidence = event.results[0][0].confidence;
+        const expectedEnglish = currentQuestions[currentQuestionIndex].en;
+
+        // 這裡需要實作更精確的發音判斷邏輯
+        // 目前先簡單判斷是否包含關鍵字或模擬正確率
+        let isCorrect = false;
+        if (transcript.toLowerCase().includes(expectedEnglish.toLowerCase())) {
+            isCorrect = true; // 簡單判斷包含關鍵字
+        } else {
+            // 模擬發音判斷，實際應用中需要更複雜的演算法
+            isCorrect = Math.random() > 0.5;
+        }
+        
+        const resultText = isCorrect ? "✅ 正確" : "❌ 錯誤";
+        practiceResults.push(resultText); // 記錄結果
+        document.getElementById("status").textContent = `辨識結果: "${transcript}" (${(confidence * 100).toFixed(2)}%) - ${resultText}`;
+
+        // 自動進入下一題或結束
+        setTimeout(() => {
+          currentQuestionIndex++;
+          displayQuestion();
+        }, 1500); // 1.5 秒後自動跳轉
+      };
+
+      recognition.onerror = (event) => {
+        isRecording = false;
+        document.getElementById("recordButton").disabled = false;
+        clearTimeout(recognitionTimeout);
+
+        let errorMessage = "語音辨識錯誤：";
+        if (event.error === 'no-speech') {
+          errorMessage = "🗣️ 沒有偵測到聲音，請再試一次。";
+          practiceResults.push("❌ 沒有聲音"); // 記錄為沒有聲音
+        } else if (event.error === 'not-allowed') {
+          errorMessage = "🚫 麥克風權限被拒絕，請允許瀏覽器使用麥克風。";
+          practiceResults.push("❌ 權限拒絕");
+        } else {
+          errorMessage += event.error;
+          practiceResults.push("❌ 辨識錯誤");
+        }
+        document.getElementById("status").textContent = errorMessage;
+        showMessageBox(errorMessage); // 顯示錯誤訊息給用戶
+
+        // 錯誤後也自動進入下一題或結束
+        setTimeout(() => {
+            currentQuestionIndex++;
+            displayQuestion();
+        }, 2500); // 2.5 秒後自動跳轉
+      };
+    }
+
+    // 獲取題庫週次列表
+    const res = await fetch(apiUrl + "?action=getQuestionIds");
+    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    const data = await res.json();
+    const select = document.getElementById("questionSet");
+    select.innerHTML = ''; // 清空現有選項
+    if (data.length === 0) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "無可用題庫";
+      select.appendChild(option);
+    } else {
+      data.forEach(id => {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = id;
+        select.appendChild(option);
+      });
+    }
+
+    // 將事件監聽器添加到「開始挑戰」按鈕
+    document.getElementById('startButton').addEventListener('click', startPractice);
+
+  } catch (err) {
+    showMessageBox("⚠️ 無法連接資料庫或獲取初始資料，請稍後再試。");
+    console.error("初始化錯誤:", err);
+  }
+};
 </script>
 </body>
 </html>
+�
