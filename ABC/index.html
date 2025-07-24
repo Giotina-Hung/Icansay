@@ -1,404 +1,416 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>英語發音挑戰</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      background-image: linear-gradient(to right, #fceabb, #f8b500);
-      font-family: 'Inter', sans-serif; /* 使用 Inter 字體 */
-    }
-    /* 自定義滾動條樣式 */
-    ::-webkit-scrollbar {
-      width: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #888;
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #555;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英語發音挑戰</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        /* Custom styles for nicer cards and shadows */
+        .card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-radius: 0.5rem;
+        }
+        .progress-bar {
+            width: 0%;
+            transition: width 0.5s ease-in-out;
+        }
+    </style>
 </head>
-<body class="p-4 sm:p-6 flex items-center justify-center min-h-screen">
-  <div class="w-full max-w-xl mx-auto bg-white rounded-3xl shadow-2xl p-6 border-4 border-yellow-300">
-    <div class="flex flex-col sm:flex-row justify-between items-center mb-4">
-      <h1 class="text-2xl sm:text-3xl font-bold text-pink-600 mb-2 sm:mb-0 text-center sm:text-left">🌟 英語發音挑戰 🌟</h1>
-      <a href="admin.html" target="_blank" class="text-sm text-purple-600 underline hover:text-purple-800">🔒 老師設定</a>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="container mx-auto max-w-lg">
+        <h1 class="text-3xl font-bold text-center text-blue-700 mb-8">英語發音挑戰</h1>
+
+        <div id="start-card" class="card bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">開始挑戰</h2>
+            <div class="mb-4">
+                <label for="student-id" class="block text-gray-700 text-sm font-bold mb-2">座號:</label>
+                <input type="number" id="student-id" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="請輸入座號" min="1">
+            </div>
+            <div class="mb-6">
+                <label for="week-select" class="block text-gray-700 text-sm font-bold mb-2">選擇週次:</label>
+                <select id="week-select" class="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline">
+                    <option value="">請選擇週次</option>
+                </select>
+            </div>
+            <button id="start-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">開始練習</button>
+        </div>
+
+        <div id="practice-card" class="card bg-white p-6 rounded-lg shadow-md hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">發音練習</h2>
+            <p class="text-lg text-gray-700 mb-4"><span id="current-question-index">1</span>/5</p>
+            <div class="mb-4">
+                <p class="text-gray-600 mb-2">請唸出以下英文句子：</p>
+                <p id="question-text" class="text-2xl font-bold text-blue-600 mb-4">Loading...</p>
+            </div>
+            <button id="record-button" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full mb-4">開始錄音</button>
+            <p id="feedback-text" class="text-xl font-semibold text-center mt-4"></p>
+            <div class="flex justify-between mt-6">
+                <button id="prev-button" class="bg-gray-400 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" disabled>上一題</button>
+                <button id="next-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" disabled>下一題</button>
+            </div>
+        </div>
+
+        <div id="result-card" class="card bg-white p-6 rounded-lg shadow-md hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">練習結果</h2>
+            <div id="question-results" class="mb-6">
+                </div>
+            <p id="pass-status" class="text-2xl font-bold text-center"></p>
+            <button id="restart-button" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full mt-4">重新挑戰</button>
+        </div>
+
+        <div class="text-center mt-8">
+            <a href="admin.html" class="text-blue-500 hover:text-blue-700 text-sm">老師管理頁面</a>
+        </div>
     </div>
 
-    <div id="startSection">
-      <label for="studentId" class="block font-bold mb-1">🧑‍🎓 座號：</label>
-      <input type="text" id="studentId" class="w-full border-2 border-pink-300 p-2 rounded-lg mb-4 bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-pink-400" placeholder="請輸入座號">
+    <script>
+        // Placeholder for Google Apps Script Web App URL
+        const SCRIPT_URL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE'; // *** IMPORTANT: Replace with your actual deployed Google Apps Script URL ***
 
-      <label for="questionSet" class="block font-bold mb-1">📚 題庫週次：</label>
-      <select id="questionSet" class="w-full border-2 border-pink-300 p-2 rounded-lg mb-4 bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-pink-400"></select>
+        const startCard = document.getElementById('start-card');
+        const practiceCard = document.getElementById('practice-card');
+        const resultCard = document.getElementById('result-card');
 
-      <!-- 確保此按鈕沒有 onclick 屬性，只有 id="startButton" -->
-      <button id="startButton" class="bg-pink-500 text-white px-6 py-3 rounded-full hover:bg-pink-600 w-full font-bold text-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">🚀 開始挑戰</button>
+        const studentIdInput = document.getElementById('student-id');
+        const weekSelect = document.getElementById('week-select');
+        const startButton = document.getElementById('start-button');
+        const recordButton = document.getElementById('record-button');
+        const questionText = document.getElementById('question-text');
+        const feedbackText = document.getElementById('feedback-text');
+        const currentQuestionIndexSpan = document.getElementById('current-question-index');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const questionResultsDiv = document.getElementById('question-results');
+        const passStatusParagraph = document.getElementById('pass-status');
+        const restartButton = document.getElementById('restart-button');
 
-      </div>
+        let currentQuestions = [];
+        let currentQuestionNumber = 0;
+        let studentResponses = Array(5).fill(false); // To track if each question is answered correctly
 
-    <div id="questionSection" class="hidden mt-6">
-      <p class="font-bold mb-2 text-lg">🎯 請唸出以下英文：</p>
-      <div class="p-4 border-2 border-yellow-300 rounded-xl bg-yellow-100 mb-4 shadow-inner">
-        <div id="currentQuestionZH" class="text-lg font-semibold text-gray-700 mb-1"></div>
-        <div id="currentQuestionEN" class="text-2xl text-pink-700 font-extrabold"></div>
-      </div>
-      <button id="recordButton" onclick="startRecordingUserInitiated()" class="bg-green-500 text-white px-6 py-3 rounded-full hover:bg-green-600 font-bold text-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">🎙️ 開始錄音</button>
-      <div id="status" class="mt-3 text-md text-purple-700 font-semibold"></div>
-      <div class="flex justify-between mt-4">
-        <button onclick="nextQuestion()" class="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 font-bold">下一題</button>
-        <button onclick="endPractice()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 font-bold">結束挑戰</button>
-      </div>
-    </div>
+        let recognition; // Web Speech Recognition API
 
-    <div id="summarySection" class="hidden bg-white p-4 rounded-xl shadow mt-6 border-2 border-green-300">
-      <h2 class="text-xl font-bold text-green-700 mb-2">🏆 挑戰完成</h2>
-      <ul id="summaryList" class="list-disc list-inside mb-4 text-lg text-gray-700"></ul>
-      <button onclick="restart()" class="bg-blue-400 text-white px-6 py-3 rounded-full hover:bg-blue-500 font-bold text-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">� 換人挑戰</button>
-    </div>
+        // --- Utility Functions ---
 
-    <div id="messageBox" class="hidden fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-      <div class="bg-white p-6 rounded-lg shadow-xl border-2 border-blue-400 text-center">
-        <p id="messageText" class="text-lg font-semibold mb-4 text-gray-800"></p>
-        <button onclick="hideMessageBox()" class="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-600 font-bold">確定</button>
-      </div>
-    </div>
+        async function fetchWeeks() {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getWeeks`);
+                const data = await response.json();
+                weekSelect.innerHTML = '<option value="">請選擇週次</option>'; // Reset options
+                if (data.success && data.weeks) {
+                    data.weeks.forEach(week => {
+                        const option = document.createElement('option');
+                        option.value = week;
+                        option.textContent = `第 ${week} 週`;
+                        weekSelect.appendChild(option);
+                    });
+                } else {
+                    alert('無法載入週次資訊，請檢查後台設定。');
+                }
+            } catch (error) {
+                console.error('Error fetching weeks:', error);
+                alert('載入週次資訊時發生錯誤。');
+            }
+        }
 
-  </div>
+        async function fetchQuestions(weekId) {
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getQuestions&weekId=${weekId}`);
+                const data = await response.json();
+                if (data.success && data.questions && data.questions.length === 5) {
+                    currentQuestions = data.questions;
+                    currentQuestionNumber = 0; // Start with the first question
+                    displayQuestion();
+                    practiceCard.classList.remove('hidden');
+                    startCard.classList.add('hidden');
+                } else {
+                    alert('無法載入該週題目，請確認題庫設定或選擇其他週次。');
+                }
+            } catch (error) {
+                console.error('Error fetching questions:', error);
+                alert('載入題目時發生錯誤。');
+            }
+        }
 
-<script>
-// 請將此處替換為你實際部署的 Google Apps Script URL
-const apiUrl = "https://script.google.com/macros/s/AKfycbz42AHuGl7eIsyye0CjtjXXwjvP9WCzBrk637DC5Xg7F4hBSBZvYbG2xr_Fwf8SZCG1/exec";
+        function displayQuestion() {
+            if (currentQuestions.length > 0 && currentQuestionNumber < currentQuestions.length) {
+                questionText.textContent = currentQuestions[currentQuestionNumber].EN;
+                currentQuestionIndexSpan.textContent = currentQuestionNumber + 1;
+                feedbackText.textContent = ''; // Clear previous feedback
+                updateNavigationButtons();
+            }
+        }
 
-let currentQuestionSetId = '';
-let currentQuestions = [];
-let currentQuestionIndex = 0;
-let practiceResults = []; // 儲存每次練習的結果
+        function updateNavigationButtons() {
+            prevButton.disabled = currentQuestionNumber === 0;
+            nextButton.disabled = currentQuestionNumber === currentQuestions.length - 1;
+        }
 
-// SpeechRecognition 相關變數
-let recognition;
-let recognitionTimeout;
-let isRecording = false;
+        async function sendResultToGoogleSheet(studentId, weekId, questionNumber, isCorrect) {
+            const formData = new FormData();
+            formData.append('action', 'logPractice');
+            formData.append('studentId', studentId);
+            formData.append('weekId', weekId);
+            formData.append('questionNumber', questionNumber + 1); // 1-indexed
+            formData.append('isCorrect', isCorrect);
 
-// 顯示自定義訊息框
-function showMessageBox(message) {
-  document.getElementById('messageText').textContent = message;
-  document.getElementById('messageBox').classList.remove('hidden');
-}
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    console.error('Failed to log practice:', data.error);
+                }
+            } catch (error) {
+                console.error('Error sending result to Google Sheet:', error);
+            }
+        }
 
-// 隱藏自定義訊息框
-function hideMessageBox() {
-  document.getElementById('messageBox').classList.add('hidden');
-}
+        function showResult() {
+            practiceCard.classList.add('hidden');
+            resultCard.classList.remove('hidden');
+            questionResultsDiv.innerHTML = '';
+            let correctCount = 0;
 
-// 開始挑戰
-async function startPractice() {
-  const studentId = document.getElementById("studentId").value.trim();
-  currentQuestionSetId = document.getElementById("questionSet").value;
+            currentQuestions.forEach((q, index) => {
+                const resultItem = document.createElement('p');
+                resultItem.classList.add('text-lg', 'mb-2');
+                const status = studentResponses[index] ? '✅ 完成' : '❌ 未完成';
+                resultItem.innerHTML = `題目 ${index + 1}: ${q.EN} - <span class="${studentResponses[index] ? 'text-green-600' : 'text-red-600'}">${status}</span>`;
+                questionResultsDiv.appendChild(resultItem);
+                if (studentResponses[index]) {
+                    correctCount++;
+                }
+            });
 
-  if (!studentId) {
-    showMessageBox("請輸入座號！");
-    return;
-  }
-  if (!currentQuestionSetId) {
-    showMessageBox("請選擇題庫週次！");
-    return;
-  }
+            if (correctCount === 5) {
+                passStatusParagraph.textContent = '恭喜你，過關了！🎉';
+                passStatusParagraph.classList.remove('text-red-600');
+                passStatusParagraph.classList.add('text-green-600');
+            } else {
+                passStatusParagraph.textContent = '尚未全部過關，請繼續加油！💪';
+                passStatusParagraph.classList.remove('text-green-600');
+                passStatusParagraph.classList.add('text-red-600');
+            }
 
-  try {
-    // 獲取選定題庫的題目
-    const res = await fetch(`${apiUrl}?action=getQuestions&id=${currentQuestionSetId}`);
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
+            // Also log the final completion status for the week
+            sendCompletionStatus(
+                studentIdInput.value,
+                weekSelect.value,
+                correctCount === 5
+            );
+        }
 
-    if (Object.keys(data).length === 0) {
-      showMessageBox("該週次沒有找到題目資料，請檢查試算表。");
-      return;
-    }
+        async function sendCompletionStatus(studentId, weekId, isPassed) {
+            const formData = new FormData();
+            formData.append('action', 'logCompletion');
+            formData.append('studentId', studentId);
+            formData.append('weekId', weekId);
+            formData.append('isPassed', isPassed);
 
-    currentQuestions = [];
-    for (let i = 1; i <= 5; i++) {
-      if (data[`Q${i}_ZH`] && data[`Q${i}_EN`]) {
-        currentQuestions.push({
-          zh: data[`Q${i}_ZH`],
-          en: data[`Q${i}_EN`]
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    console.error('Failed to log completion status:', data.error);
+                }
+            } catch (error) {
+                console.error('Error sending completion status to Google Sheet:', error);
+            }
+        }
+
+        // --- Speech Synthesis (Text-to-Speech) Logic ---
+        function speakText(text, repetitions = 1, callback) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US'; // Set language to English
+                utterance.rate = 0.9; // Slightly slower for clarity
+                utterance.pitch = 1; // Normal pitch
+
+                let count = 0;
+                utterance.onend = () => {
+                    count++;
+                    if (count < repetitions) {
+                        window.speechSynthesis.speak(utterance);
+                    } else if (callback) {
+                        callback(); // Call callback after all repetitions
+                    }
+                };
+
+                utterance.onerror = (event) => {
+                    console.error('Speech synthesis error:', event.error);
+                };
+
+                window.speechSynthesis.speak(utterance);
+            } else {
+                console.warn('您的瀏覽器不支援語音合成功能。');
+                if (callback) {
+                    callback(); // Ensure callback is still called if TTS not supported
+                }
+            }
+        }
+
+
+        // --- Speech Recognition Logic ---
+
+        function setupSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert('抱歉，您的瀏覽器不支援語音辨識功能。建議使用 Chrome 瀏覽器。');
+                recordButton.disabled = true;
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false; // Only get one result per recognition
+            recognition.interimResults = false; // Only return final results
+            recognition.lang = 'en-US'; // Set language to English
+
+            recognition.onstart = () => {
+                feedbackText.textContent = '請說話...';
+                feedbackText.classList.remove('text-green-600', 'text-red-600');
+                recordButton.textContent = '錄音中...';
+                recordButton.classList.remove('bg-green-500');
+                recordButton.classList.add('bg-gray-500');
+                recordButton.disabled = true;
+            };
+
+            recognition.onresult = (event) => {
+                const speechResult = event.results[0][0].transcript;
+                const targetText = currentQuestions[currentQuestionNumber].EN;
+                let isCorrect = compareSpeech(speechResult, targetText);
+
+                if (isCorrect) {
+                    feedbackText.textContent = '你答對了！🎉';
+                    feedbackText.classList.remove('text-red-600');
+                    feedbackText.classList.add('text-green-600');
+                    studentResponses[currentQuestionNumber] = true;
+                    // Re-enable button immediately if correct
+                    recordButton.textContent = '開始錄音';
+                    recordButton.classList.remove('bg-gray-500');
+                    recordButton.classList.add('bg-green-500');
+                    recordButton.disabled = false;
+                } else {
+                    feedbackText.textContent = `再試一次，你說的是 "${speechResult}"`;
+                    feedbackText.classList.remove('text-green-600');
+                    feedbackText.classList.add('text-red-600');
+                    studentResponses[currentQuestionNumber] = false;
+
+                    // Play correct pronunciation 3 times
+                    speakText(targetText, 3, () => {
+                        // Callback after speaking completes
+                        recordButton.textContent = '開始錄音';
+                        recordButton.classList.remove('bg-gray-500');
+                        recordButton.classList.add('bg-green-500');
+                        recordButton.disabled = false;
+                    });
+                }
+
+                // Log individual question result
+                sendResultToGoogleSheet(
+                    studentIdInput.value,
+                    weekSelect.value,
+                    currentQuestionNumber,
+                    isCorrect
+                );
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                feedbackText.textContent = '語音辨識發生錯誤，請重試。';
+                feedbackText.classList.remove('text-green-600');
+                feedbackText.classList.add('text-red-600');
+                recordButton.textContent = '開始錄音';
+                recordButton.classList.remove('bg-gray-500');
+                recordButton.classList.add('bg-green-500');
+                recordButton.disabled = false;
+            };
+
+            recognition.onend = () => {
+                console.log('Speech recognition ended.');
+                // Button re-enabling is now handled within onresult or speakText callback
+            };
+        }
+
+        function compareSpeech(recognizedText, targetText) {
+            // Simple comparison: convert to lowercase and remove non-alphanumeric characters
+            const cleanedRecognized = recognizedText.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+            const cleanedTarget = targetText.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+            return cleanedRecognized === cleanedTarget;
+        }
+
+        // --- Event Listeners ---
+
+        startButton.addEventListener('click', () => {
+            const studentId = studentIdInput.value;
+            const weekId = weekSelect.value;
+            if (!studentId) {
+                alert('請輸入座號！');
+                return;
+            }
+            if (!weekId) {
+                alert('請選擇週次！');
+                return;
+            }
+            fetchQuestions(weekId);
+            setupSpeechRecognition(); // Initialize speech recognition
         });
-      }
-    }
 
-    if (currentQuestions.length === 0) {
-      showMessageBox("該週次沒有找到有效的題目對應，請檢查試算表格式。");
-      return;
-    }
+        recordButton.addEventListener('click', () => {
+            if (recognition) {
+                // Stop any ongoing speech synthesis before starting recognition
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.cancel();
+                }
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.error("Error starting recognition:", e);
+                    alert("語音辨識啟動失敗，請確認麥克風權限或重試。");
+                }
+            } else {
+                alert('語音辨識未初始化，請確認瀏覽器支援並刷新頁面。');
+            }
+        });
 
-    currentQuestionIndex = 0;
-    practiceResults = []; // 重置練習結果
-
-    document.getElementById("startSection").classList.add("hidden");
-    document.getElementById("questionSection").classList.remove("hidden");
-    displayQuestion(); // 顯示第一道題目
-
-  } catch (err) {
-    showMessageBox("⚠️ 無法載入題目，請檢查網路或資料庫設定。");
-    console.error("載入題目錯誤:", err);
-  }
-}
-
-// 顯示當前題目 (不再自動啟動錄音)
-function displayQuestion() {
-  if (currentQuestionIndex < currentQuestions.length) {
-    const question = currentQuestions[currentQuestionIndex];
-    document.getElementById("currentQuestionZH").textContent = question.zh;
-    document.getElementById("currentQuestionEN").textContent = question.en;
-    document.getElementById("status").textContent = "請點擊「開始錄音」按鈕。";
-    document.getElementById("recordButton").disabled = false; // 確保按鈕可用
-  } else {
-    endPractice(); // 所有題目都答完
-  }
-}
-
-// 開始錄音 (由用戶點擊按鈕觸發)
-function startRecordingUserInitiated() {
-  // 如果已經在錄音中，先停止
-  if (isRecording) {
-    recognition.stop();
-    clearTimeout(recognitionTimeout); // 清除舊的計時器
-    isRecording = false; // 重置狀態
-  }
-
-  if (recognition) {
-    try {
-      recognition.start();
-      // 設定 5 秒後自動停止錄音
-      recognitionTimeout = setTimeout(() => {
-        if (isRecording) { // 確保仍在錄音中才停止
-            recognition.stop();
-        }
-      }, 5000); // 5000 毫秒 = 5 秒
-    } catch (e) {
-      // 捕獲 'recognition has already started' 錯誤，並忽略
-      if (e.name === 'InvalidStateError' && e.message.includes('recognition has already started')) {
-        console.warn("語音辨識器已在運行，無需重複啟動。");
-        // 不顯示錯誤訊息給用戶，因為這不是一個真正的錯誤，而是邏輯上的重複啟動
-      } else if (e.name === 'AbortError') {
-        document.getElementById("status").textContent = "錄音已停止。";
-      } else {
-        document.getElementById("status").textContent = `錄音啟動失敗: ${e.message}`;
-        console.error("錄音啟動錯誤:", e);
-        showMessageBox(`錄音啟動失敗: ${e.message}`);
-      }
-      isRecording = false;
-      document.getElementById("recordButton").disabled = false;
-    }
-  } else {
-    showMessageBox("語音辨識功能未初始化或不支援。");
-  }
-}
-
-// 手動跳到下一題 (如果需要，但自動跳轉更流暢)
-function nextQuestion() {
-  if (isRecording) {
-      recognition.stop(); // 停止當前錄音
-  }
-  currentQuestionIndex++;
-  displayQuestion();
-}
-
-// 結束挑戰並顯示總結
-async function endPractice() {
-  document.getElementById("questionSection").classList.add("hidden");
-  document.getElementById("summarySection").classList.remove("hidden");
-
-  const summaryList = document.getElementById("summaryList");
-  summaryList.innerHTML = ''; // 清空列表
-
-  let allPassed = true;
-  for (let i = 0; i < currentQuestions.length; i++) {
-    const li = document.createElement("li");
-    // 確保 practiceResults 有對應的結果，否則顯示未作答
-    const result = practiceResults[i] !== undefined ? practiceResults[i] : "未作答"; 
-    li.innerHTML = `<strong>${currentQuestions[i].en}</strong>: ${result}`;
-    summaryList.appendChild(li);
-    if (result.includes("❌")) {
-      allPassed = false;
-    }
-  }
-
-  const finalStatus = allPassed ? "✅ 全部通過" : "❌ 未通過";
-  const liFinal = document.createElement("li");
-  liFinal.innerHTML = `<strong class="text-green-700">總結：${finalStatus}</strong>`;
-  summaryList.appendChild(liFinal);
-
-  // 將結果記錄到 Google 試算表
-  try {
-    const studentId = document.getElementById("studentId").value.trim();
-    const payload = {
-      action: "recordSummary",
-      studentId: studentId,
-      questionId: currentQuestionSetId,
-      results: practiceResults,
-      passed: finalStatus
-    };
-
-    const res = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(payload)
-    });
-
-    if (!res.ok) {
-        const errorText = await res.text();
-        throw new Error(`HTTP error! status: ${res.status}, response: ${errorText}`);
-    }
-    const textResponse = await res.text();
-    console.log("記錄摘要回應:", textResponse);
-    showMessageBox("挑戰結果已記錄！");
-
-  } catch (err) {
-    showMessageBox("⚠️ 無法記錄挑戰結果。請檢查網路或 Apps Script 設定。");
-    console.error("記錄結果錯誤:", err);
-  }
-}
-
-// 重新開始
-function restart() {
-  document.getElementById("studentId").value = ""; // 清空座號
-  document.getElementById("summarySection").classList.add("hidden");
-  document.getElementById("startSection").classList.remove("hidden");
-  document.getElementById("status").textContent = ""; // 清空狀態
-}
-
-// 頁面載入時初始化
-window.onload = async () => {
-  try {
-    // 檢查瀏覽器是否支援 SpeechRecognition
-    if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
-      showMessageBox("⚠️ 您的瀏覽器不支援語音辨識功能，請使用 Google Chrome 瀏覽器以獲得最佳體驗。");
-      document.getElementById('recordButton').disabled = true; // 禁用錄音按鈕
-    } else {
-      // 初始化 SpeechRecognition
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.continuous = false; // 只獲取單次結果
-      recognition.interimResults = false; // 不顯示中間結果
-      recognition.lang = 'en-US'; // 設定辨識語言為英文
-
-      recognition.onstart = () => {
-        isRecording = true;
-        document.getElementById("status").textContent = "🎙️ 錄音中... 請唸出英文 (5秒)";
-        document.getElementById("recordButton").disabled = true; // 錄音時禁用按鈕
-      };
-
-      recognition.onend = () => {
-        isRecording = false;
-        document.getElementById("recordButton").disabled = false; // 錄音結束後啟用按鈕
-        clearTimeout(recognitionTimeout); // 清除計時器
-        // 如果沒有結果，表示可能沒有聲音或辨識失敗
-        if (document.getElementById("status").textContent.includes("錄音中")) {
-            // 如果狀態仍是錄音中，表示沒有觸發 onresult 或 onerror
-            document.getElementById("status").textContent = "🗣️ 錄音結束，沒有偵測到有效聲音。";
-            // 由於沒有辨識結果，這裡可以設定為錯誤，並自動進入下一題
-            practiceResults.push("❌ 沒有聲音");
-            setTimeout(() => {
-                currentQuestionIndex++;
+        prevButton.addEventListener('click', () => {
+            if (currentQuestionNumber > 0) {
+                currentQuestionNumber--;
                 displayQuestion();
-            }, 1500); // 1.5 秒後自動跳轉
-        }
-      };
+            }
+        });
 
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        const confidence = event.results[0][0].confidence;
-        const expectedEnglish = currentQuestions[currentQuestionIndex].en;
+        nextButton.addEventListener('click', () => {
+            if (currentQuestionNumber < currentQuestions.length - 1) {
+                currentQuestionNumber++;
+                displayQuestion();
+            } else {
+                // Last question, show results
+                showResult();
+            }
+        });
 
-        // 這裡需要實作更精確的發音判斷邏輯
-        // 目前先簡單判斷是否包含關鍵字或模擬正確率
-        let isCorrect = false;
-        if (transcript.toLowerCase().includes(expectedEnglish.toLowerCase())) {
-            isCorrect = true; // 簡單判斷包含關鍵字
-        } else {
-            // 模擬發音判斷，實際應用中需要更複雜的演算法
-            isCorrect = Math.random() > 0.5;
-        }
-        
-        const resultText = isCorrect ? "✅ 正確" : "❌ 錯誤";
-        practiceResults.push(resultText); // 記錄結果
-        document.getElementById("status").textContent = `辨識結果: "${transcript}" (${(confidence * 100).toFixed(2)}%) - ${resultText}`;
+        restartButton.addEventListener('click', () => {
+            resultCard.classList.add('hidden');
+            startCard.classList.remove('hidden');
+            studentIdInput.value = '';
+            weekSelect.value = ''; // Reset week selection
+            currentQuestions = [];
+            currentQuestionNumber = 0;
+            studentResponses = Array(5).fill(false); // Reset responses
+            feedbackText.textContent = ''; // Clear feedback
+            fetchWeeks(); // Reload weeks for new selection
+        });
 
-        // 自動進入下一題或結束
-        setTimeout(() => {
-          currentQuestionIndex++;
-          displayQuestion();
-        }, 1500); // 1.5 秒後自動跳轉
-      };
+        // Initial load
+        document.addEventListener('DOMContentLoaded', fetchWeeks);
 
-      recognition.onerror = (event) => {
-        isRecording = false;
-        document.getElementById("recordButton").disabled = false;
-        clearTimeout(recognitionTimeout);
-
-        let errorMessage = "語音辨識錯誤：";
-        if (event.error === 'no-speech') {
-          errorMessage = "🗣️ 沒有偵測到聲音，請再試一次。";
-          practiceResults.push("❌ 沒有聲音"); // 記錄為沒有聲音
-        } else if (event.error === 'not-allowed') {
-          errorMessage = "🚫 麥克風權限被拒絕，請允許瀏覽器使用麥克風。";
-          practiceResults.push("❌ 權限拒絕");
-        } else {
-          errorMessage += event.error;
-          practiceResults.push("❌ 辨識錯誤");
-        }
-        document.getElementById("status").textContent = errorMessage;
-        showMessageBox(errorMessage); // 顯示錯誤訊息給用戶
-
-        // 錯誤後也自動進入下一題或結束
-        setTimeout(() => {
-            currentQuestionIndex++;
-            displayQuestion();
-        }, 2500); // 2.5 秒後自動跳轉
-      };
-    }
-
-    // 獲取題庫週次列表
-    const res = await fetch(apiUrl + "?action=getQuestionIds");
-    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-    const data = await res.json();
-    const select = document.getElementById("questionSet");
-    select.innerHTML = ''; // 清空現有選項
-    if (data.length === 0) {
-      const option = document.createElement("option");
-      option.value = "";
-      option.textContent = "無可用題庫";
-      select.appendChild(option);
-    } else {
-      data.forEach(id => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = id;
-        select.appendChild(option);
-      });
-    }
-
-    // 將事件監聽器添加到「開始挑戰」按鈕
-    document.getElementById('startButton').addEventListener('click', startPractice);
-
-  } catch (err) {
-    showMessageBox("⚠️ 無法連接資料庫或獲取初始資料，請稍後再試。");
-    console.error("初始化錯誤:", err);
-  }
-};
-</script>
+    </script>
 </body>
 </html>
-�
